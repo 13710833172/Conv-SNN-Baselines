@@ -1,0 +1,52 @@
+{
+  "runs": [
+    {
+      "dataset": "mnist",
+      "run_name": "mnist_20260602_052040",
+      "run_dir": "runs/mnist/mnist_20260602_052040",
+      "epochs": 100,
+      "timesteps": 4,
+      "channels": 64,
+      "hidden_dim": 256,
+      "neuron": "lif",
+      "amp": true,
+      "best_epoch": 58,
+      "best_val_acc": 0.9943333333333333,
+      "final_val_acc": 0.9933333333333333,
+      "test_acc": 0.9936,
+      "test_loss": 0.0010556250127498061
+    },
+    {
+      "dataset": "cifar10",
+      "run_name": "cifar10_20260602_072653",
+      "run_dir": "runs/cifar10/cifar10_20260602_072653",
+      "epochs": 150,
+      "timesteps": 4,
+      "channels": 64,
+      "hidden_dim": 256,
+      "neuron": "lif",
+      "amp": true,
+      "best_epoch": 141,
+      "best_val_acc": 0.884,
+      "final_val_acc": 0.8746,
+      "test_acc": 0.8804,
+      "test_loss": 0.018593750327825547
+    },
+    {
+      "dataset": "cifar10",
+      "run_name": "cifar10_20260602_053054",
+      "run_dir": "runs/cifar10/cifar10_20260602_053054",
+      "epochs": 100,
+      "timesteps": 4,
+      "channels": 64,
+      "hidden_dim": 256,
+      "neuron": "lif",
+      "amp": true,
+      "best_epoch": 99,
+      "best_val_acc": 0.8776,
+      "final_val_acc": 0.8776,
+      "test_acc": 0.8692,
+      "test_loss": 0.01987812531590462
+    }
+  ]
+}

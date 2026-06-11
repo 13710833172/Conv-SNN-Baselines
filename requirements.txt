@@ -1,0 +1,5 @@
+torch>=2.1
+torchvision>=0.16
+matplotlib>=3.8
+tqdm>=4.66
+spikingjelly @ git+https://github.com/fangwei123456/spikingjelly.git@b049197b9589211418940c50031d3b7acb603bd6
