@@ -1,4 +1,4 @@
-# Minimal Conv-SNN Research Baseline
+# Conv-SNN Research Baseline
 
 A compact, reproducible spiking neural network project for **MNIST** and **CIFAR-10**. The goal is not to build a new framework; the goal is to package a small but credible research artifact that shows experimental discipline, clean implementation, and honest use of upstream tooling.
 
