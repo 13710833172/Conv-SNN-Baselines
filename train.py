@@ -15,7 +15,12 @@ from snn_minimal.data import (
     get_dataset_spec,
     infer_pin_memory,
 )
-from snn_minimal.engine import load_checkpoint, run_epoch, save_checkpoint
+from snn_minimal.engine import (
+    collect_predictions,
+    load_checkpoint,
+    run_epoch,
+    save_checkpoint,
+)
 from snn_minimal.models import ConvSNN
 from snn_minimal.plotting import setup_recorder
 
@@ -204,7 +209,29 @@ def main():
             lr=optimizer.param_groups[0]["lr"],
         )
 
-    recorder.finalize()
+    best_ckpt = run_dir / "checkpoint_best.pt"
+    if best_ckpt.exists():
+        load_checkpoint(
+            path=best_ckpt,
+            model=model,
+            optimizer=None,
+            scheduler=None,
+            map_location="cpu",
+        )
+        model.to(device)
+
+    y_true, y_pred = collect_predictions(
+        model=model,
+        loader=val_loader,
+        device=device,
+        limit_batches=args.limit_val_batches,
+        desc="confusion",
+    )
+    recorder.finalize(
+        y_true=y_true,
+        y_pred=y_pred,
+        class_names=dataset_spec.class_names,
+    )
 
 
 if __name__ == "__main__":

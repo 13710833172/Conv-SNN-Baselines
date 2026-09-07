@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import TextIO
+from typing import Optional, Sequence, TextIO
 
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -102,6 +103,57 @@ def plot_training_curves(
     return loss_path, acc_path
 
 
+def plot_confusion_matrix(
+    y_true: Sequence[int],
+    y_pred: Sequence[int],
+    run_dir: Path,
+    class_names: Optional[Sequence[str]] = None,
+) -> Path:
+    out_path = run_dir / "confusion_matrix.svg"
+    if not y_true:
+        return out_path
+
+    labels = np.array(y_true, dtype=int)
+    preds = np.array(y_pred, dtype=int)
+    if class_names:
+        names = list(class_names)
+        num_classes = len(names)
+    else:
+        observed = 0
+        if labels.size:
+            observed = max(observed, int(labels.max()))
+        if preds.size:
+            observed = max(observed, int(preds.max()))
+        num_classes = observed + 1
+        names = [str(i) for i in range(num_classes)]
+
+    matrix = np.zeros((num_classes, num_classes), dtype=int)
+    for true_label, pred_label in zip(labels, preds, strict=True):
+        if 0 <= true_label < num_classes and 0 <= pred_label < num_classes:
+            matrix[true_label, pred_label] += 1
+
+    fig_size = max(6.0, 0.55 * num_classes + 2.0)
+    fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+    image = ax.imshow(matrix, interpolation="nearest", cmap="Blues")
+    fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
+    ax.set_title("Confusion Matrix (Validation)")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("True")
+    ax.set_xticks(range(num_classes), names, rotation=45, ha="right")
+    ax.set_yticks(range(num_classes), names)
+
+    threshold = matrix.max() / 2.0 if matrix.size else 0.0
+    for i in range(num_classes):
+        for j in range(num_classes):
+            color = "white" if matrix[i, j] > threshold else "black"
+            ax.text(j, i, str(matrix[i, j]), ha="center", va="center", color=color, fontsize=8)
+
+    fig.tight_layout()
+    fig.savefig(out_path, format="svg", bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
 class TrainingRecorder:
     def __init__(self, run_dir: Path, resume: bool = False):
         self.run_dir = run_dir
@@ -141,14 +193,30 @@ class TrainingRecorder:
         print(line)
         return line
 
-    def finalize(self) -> tuple[Path, Path]:
+    def finalize(
+        self,
+        y_true: Optional[Sequence[int]] = None,
+        y_pred: Optional[Sequence[int]] = None,
+        class_names: Optional[Sequence[str]] = None,
+    ) -> tuple[Path, Path, Path | None]:
         self._log_file.close()
         loss_path, acc_path = plot_training_curves(self.history, self.run_dir)
+        cm_path = None
+        if y_true is not None and y_pred is not None:
+            cm_path = plot_confusion_matrix(
+                y_true=y_true,
+                y_pred=y_pred,
+                run_dir=self.run_dir,
+                class_names=class_names,
+            )
         if self.history["epochs"]:
-            print(f"saved plots: {loss_path}, {acc_path}")
+            saved = f"saved plots: {loss_path}, {acc_path}"
+            if cm_path is not None:
+                saved += f", {cm_path}"
+            print(saved)
         print(f"training log: {self.log_path}")
         print(f"metrics: {self.metrics_path}")
-        return loss_path, acc_path
+        return loss_path, acc_path, cm_path
 
 
 def setup_recorder(run_dir: Path, resume: bool = False) -> TrainingRecorder:

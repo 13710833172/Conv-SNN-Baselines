@@ -13,7 +13,7 @@ def _make_spiking_neuron(neuron_type: str, tau: float):
         return partial(
             neuron.LIFNode,
             tau=float(tau),
-            surrogate_function=surrogate.ATan(),
+            surrogate_function=surrogate.ATan(), #替代梯度函数
         )
     if neuron_type == "if":
         return partial(

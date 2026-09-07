@@ -42,8 +42,8 @@ def run_epoch(
     total_samples = 0
 
     iterator = tqdm(loader, desc=desc, leave=False)
-    amp_enabled = scaler is not None and device.type == "cuda"
-    context = torch.enable_grad if is_train else torch.no_grad
+    amp_enabled = scaler is not None and device.type == "cuda" # amp_enabled 是一个布尔值，用于指示是否启用自动混合精度训练。
+    context = torch.enable_grad if is_train else torch.no_grad # context 是一个上下文管理器，用于指示是否启用梯度计算。
 
     with context():
         for step, (images, targets) in enumerate(iterator):
@@ -70,7 +70,6 @@ def run_epoch(
                     loss.backward()
                     optimizer.step()
 
-            # Spiking states must not leak across mini-batches.
             functional.reset_net(model)
 
             batch_size = targets.size(0)
@@ -88,6 +87,32 @@ def run_epoch(
         acc=total_correct / max(total_samples, 1),
         samples=total_samples,
     )
+
+
+def collect_predictions(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    limit_batches: Optional[int] = None,
+    desc: str = "confusion",
+) -> tuple[list[int], list[int]]:
+    model.eval()
+    y_true: list[int] = []
+    y_pred: list[int] = []
+    iterator = tqdm(loader, desc=desc, leave=False)
+
+    with torch.no_grad():
+        for step, (images, targets) in enumerate(iterator):
+            if limit_batches is not None and step >= limit_batches:
+                break
+            images = images.to(device, non_blocking=device.type == "cuda")
+            outputs = model(images)
+            functional.reset_net(model)
+            preds = outputs.argmax(dim=1).detach().cpu().tolist()
+            y_pred.extend(preds)
+            y_true.extend(targets.detach().cpu().tolist())
+
+    return y_true, y_pred
 
 
 def save_checkpoint(

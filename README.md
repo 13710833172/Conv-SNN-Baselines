@@ -39,6 +39,12 @@ Validation curves from the best tracked runs:
 
 ![CIFAR-10 validation accuracy](assets/figures/cifar10_val_acc.svg)
 
+Validation confusion matrices of the best checkpoints:
+
+![MNIST confusion matrix](assets/figures/mnist_confusion_matrix.svg)
+
+![CIFAR-10 confusion matrix](assets/figures/cifar10_confusion_matrix.svg)
+
 ## Experimental Design
 
 ```mermaid
@@ -146,7 +152,7 @@ python3 scripts/summarize_runs.py
 - `metrics.json` stores final and best-validation checkpoints.
 - `test_metrics.json` is written only by `test.py`.
 - `train.log` records per-epoch metrics for later inspection.
-- `train_loss.svg` and `val_acc.svg` are generated automatically after training.
+- `train_loss.svg`, `val_acc.svg`, and `confusion_matrix.svg` are generated automatically after training.
 - GitHub Actions runs a CPU smoke test to catch broken training/evaluation flows.
 
 ## Scope And Honesty
@@ -171,6 +177,7 @@ The most natural extensions from here are:
 ## Additional Notes
 
 - Detailed run summaries: [`results/experiment_summary.md`](results/experiment_summary.md)
+- Chinese stage report: [`report.md`](report.md)
 - Upstream attribution and design boundary: [`REFERENCE_NOTES.md`](REFERENCE_NOTES.md)
 - Chinese experiment note: [`SNN实验说明.pdf`](SNN实验说明.pdf)
 

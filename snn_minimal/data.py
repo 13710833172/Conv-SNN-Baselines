@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import torch
 from torch.utils.data import DataLoader, Subset
@@ -13,11 +13,33 @@ class DatasetSpec:
     in_channels: int
     image_size: int
     num_classes: int = 10
+    class_names: tuple[str, ...] = field(default_factory=tuple)
 
 
 DATASET_SPECS = {
-    "mnist": DatasetSpec(name="mnist", in_channels=1, image_size=28),
-    "cifar10": DatasetSpec(name="cifar10", in_channels=3, image_size=32),
+    "mnist": DatasetSpec(
+        name="mnist",
+        in_channels=1,
+        image_size=28,
+        class_names=tuple(str(i) for i in range(10)),
+    ),
+    "cifar10": DatasetSpec(
+        name="cifar10",
+        in_channels=3,
+        image_size=32,
+        class_names=(
+            "airplane",
+            "automobile",
+            "bird",
+            "cat",
+            "deer",
+            "dog",
+            "frog",
+            "horse",
+            "ship",
+            "truck",
+        ),
+    ),
 }
 
 
