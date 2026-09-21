@@ -33,18 +33,6 @@ The summary below is generated from the tracked experiment metadata in [`results
 | MNIST | `mnist_20260602_052040` | 100 | 4 | **99.43%** | **99.36%** |
 | CIFAR-10 | `cifar10_20260602_072653` | 150 | 4 | **88.40%** | **88.04%** |
 
-Validation curves from the best tracked runs:
-
-![MNIST validation accuracy](assets/figures/mnist_val_acc.svg)
-
-![CIFAR-10 validation accuracy](assets/figures/cifar10_val_acc.svg)
-
-Validation confusion matrices of the best checkpoints:
-
-![MNIST confusion matrix](assets/figures/mnist_confusion_matrix.svg)
-
-![CIFAR-10 confusion matrix](assets/figures/cifar10_confusion_matrix.svg)
-
 ## Experimental Design
 
 ```mermaid
