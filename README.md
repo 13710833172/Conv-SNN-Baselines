@@ -103,3 +103,7 @@ The recorded results do not establish energy savings, hardware acceleration, or 
 ## License
 
 [MIT](LICENSE). Upstream dependencies retain their respective licenses.
+
+## Related research
+
+The [Logic-SNN project](https://github.com/13710833172/Logic-SNN) studies logic-gate synapses with spiking dynamics and retains conventional ConvSNN baselines. Results from that project, including its DVS baseline, are reported separately.
