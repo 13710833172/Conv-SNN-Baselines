@@ -16,9 +16,15 @@ Multi-step spiking neural networks offer an explicit temporal state representati
 
 ## Methodology
 
-![Multi-step convolutional SNN architecture on MNIST and CIFAR-10](docs/figures/overview.svg)
+The two dataset-specific method figures below follow the implemented architectures and documented research configurations. Feature maps, spikes, and operator distributions are schematic.
 
-*Figure 1. Static repetition over T = 4 timesteps feeds a dataset-specific convolutional encoder and a spiking classification head. The figure shows spatial resolution and channel progression for both tasks; final predictions use the temporal mean of output spikes.*
+![MNIST method architecture](docs/figures/mnist_architecture.svg)
+
+*Figure 1a. MNIST Conv-SNN: two Conv–BN–LIF stages with pooling, followed by two fully connected spiking layers and temporal averaging.*
+
+![CIFAR-10 method architecture](docs/figures/cifar10_architecture.svg)
+
+*Figure 1b. CIFAR-10 Conv-SNN: four Conv–BN–LIF stages, pooling after stages 2 and 4, and a two-layer spiking classifier.*
 
 **Temporal input.** For a static image $x$, the model applies $x^{(t)} = x$ for $t=1,\dots,T$. The neuronal state evolves through integration, thresholding, and reset, implemented using SpikingJelly [LIFNode/IFNode](snn_minimal/models/conv_snn.py).
 
