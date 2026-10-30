@@ -1,79 +1,38 @@
-# Conv-SNN Research Baseline
+# Convolutional SNN Classification Baselines
 
-A compact, reproducible spiking neural network project for **MNIST** and **CIFAR-10**. The goal is not to build a new framework; the goal is to package a small but credible research artifact that shows experimental discipline, clean implementation, and honest use of upstream tooling.
+Multi-step convolutional spiking neural networks for **MNIST** and **CIFAR-10**, built with PyTorch and [SpikingJelly](https://github.com/fangwei123456/spikingjelly). This repository provides a compact baseline for static-image classification, with separate training, validation, and test entry points.
 
-## Research Positioning
+## Model and scope
 
-This repository is designed to show four things clearly:
+- Ordinary learned convolutional and linear synapses, with `LIFNode` or `IFNode` spiking neurons.
+- Static image features repeated over `T` timesteps; outputs are aggregated over time.
+- Surrogate-gradient training with `ATan`, checkpointing, metric logs, and generated figures.
 
-- I can turn an idea into a runnable experiment instead of leaving it as a notebook fragment.
-- I separate **training**, **validation**, and **test** correctly, with deterministic data splits.
-- I keep dependency boundaries explicit: spiking operators come from SpikingJelly, while the experiment pipeline, evaluation protocol, and repository engineering are implemented here.
-- I package results so another researcher can inspect the setup, reproduce the workflow, and extend it.
+This is a **conventional Conv-SNN baseline**. It does not implement differentiable logic-gate synapses. It also does not include the CIFAR10-DVS experiments maintained in the separate SNN research workspace.
 
-## What The Project Studies
+## Recorded experiments
 
-The current question is simple and intentional:
+The following historical runs are recorded in [the tracked result metadata](results/experiment_summary.json). They are individual-run observations, not multi-seed estimates or state-of-the-art claims.
 
-> How far can a lightweight multi-step convolutional SNN go on static-image classification when the codebase is kept small, reproducible, and easy to audit?
-
-The implementation uses:
-
-- multi-step rate-based inference with `T` repeated timesteps
-- `LIFNode` or `IFNode` neurons from SpikingJelly
-- surrogate gradient training with `ATan`
-- explicit checkpointing, metric logging, SVG curves, and standalone test-set evaluation
-
-## Current Results
-
-The summary below is generated from the tracked experiment metadata in [`results/experiment_summary.md`](results/experiment_summary.md).
-
-| Dataset | Best Run | Epochs | Timesteps | Best Val Acc | Test Acc |
+| Dataset | Run | Epochs | T | Best validation accuracy | Test accuracy |
 | --- | --- | ---: | ---: | ---: | ---: |
-| MNIST | `mnist_20260602_052040` | 100 | 4 | **99.43%** | **99.36%** |
-| CIFAR-10 | `cifar10_20260602_072653` | 150 | 4 | **88.40%** | **88.04%** |
+| MNIST | `mnist_20260602_052040` | 100 | 4 | 99.43% | 99.36% |
+| CIFAR-10 | `cifar10_20260602_072653` | 150 | 4 | 88.40% | 88.04% |
+| CIFAR-10 | `cifar10_20260602_053054` | 100 | 4 | 87.76% | 86.92% |
 
-## Experimental Design
+Each training run selects its checkpoint using validation accuracy; `test.py` evaluates the official test split separately. The current summary script ranks runs by test accuracy before validation accuracy, so its generated “best run” label should not be interpreted as a validation-only comparison across configurations. No model-selection code has been changed in this documentation update.
 
-```mermaid
-flowchart LR
-    A["Static Image Dataset"] --> B["Train/Val Split with Fixed Seed"]
-    B --> C["Multi-step Conv-SNN Training"]
-    C --> D["Checkpoint + JSON Logs + SVG Curves"]
-    D --> E["Best Checkpoint Selection by Validation Accuracy"]
-    E --> F["Standalone Test-set Evaluation"]
-    F --> G["Results Summary for GitHub"]
-```
+## Quick start
 
-Key controls:
-
-- fixed random seed for training
-- deterministic train/validation split through `--split-seed`
-- no test-set leakage during training
-- timestamped run directories with saved CLI arguments
-- separate `test.py` for final evaluation
-
-## Repository Highlights
-
-| Path | Why it matters |
-| --- | --- |
-| `train.py` | Training entry point with checkpointing, scheduler, AMP, and validation loop |
-| `test.py` | Rebuilds the model from a run directory and evaluates on the official test split |
-| `snn_minimal/` | Minimal code surface for data loading, training engine, plotting, and model definition |
-| `scripts/summarize_runs.py` | Converts raw run artifacts into a GitHub-friendly experiment summary |
-| `.github/workflows/smoke-test.yml` | CI smoke test proving the project is not documentation-only |
-| `REFERENCE_NOTES.md` | Explicit upstream attribution and scope boundary |
-
-## Quick Start
+From the repository root:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Train a small run:
+Train a short MNIST experiment:
 
 ```bash
 python train.py \
@@ -86,89 +45,61 @@ python train.py \
   --device cpu
 ```
 
-Evaluate the best checkpoint from a run directory:
+Evaluate its best validation checkpoint, replacing `<run>` with the generated run directory:
 
 ```bash
-python test.py \
-  --run-dir ./runs/mnist/<timestamped-run> \
-  --device cpu
+python test.py --run-dir ./runs/mnist/<run> --device cpu
 ```
 
-## Reproduce The Strongest Runs In This Repo
+The repository tracks result summaries and figures; the full historical run directories and checkpoints are not included. A fresh checkout requires training a model before using the evaluation command.
 
-MNIST:
+## Example training configurations
+
+The following commands use the architecture sizes and training durations recorded above. Exact historical run metadata should be retained when reproducing or comparing results.
 
 ```bash
-python train.py \
-  --dataset mnist \
-  --data-root ./data \
-  --output-dir ./runs/mnist \
-  --epochs 100 \
-  --batch-size 64 \
-  --timesteps 4 \
-  --channels 64 \
-  --hidden-dim 256 \
-  --device cuda \
-  --amp
+# MNIST, 100 epochs
+python train.py --dataset mnist --data-root ./data \
+  --output-dir ./runs/mnist --epochs 100 --batch-size 64 \
+  --timesteps 4 --channels 64 --hidden-dim 256 --device cuda --amp
+
+# CIFAR-10, 150 epochs
+python train.py --dataset cifar10 --data-root ./data \
+  --output-dir ./runs/cifar10 --epochs 150 --batch-size 64 \
+  --timesteps 4 --channels 64 --hidden-dim 256 --device cuda --amp
 ```
 
-CIFAR-10:
+## Experiment artifacts
 
-```bash
-python train.py \
-  --dataset cifar10 \
-  --data-root ./data \
-  --output-dir ./runs/cifar10 \
-  --epochs 150 \
-  --batch-size 64 \
-  --timesteps 4 \
-  --channels 64 \
-  --hidden-dim 256 \
-  --device cuda \
-  --amp
-```
+| Artifact | Contents |
+| --- | --- |
+| `args.json` | Run configuration, including training and split seeds |
+| `metrics.json` | Best-validation and final training metrics |
+| `checkpoint_best.pt` | Checkpoint selected within a run |
+| `test_metrics.json` | Test evaluation written by `test.py` |
+| `train.log` | Per-epoch records |
+| Generated SVG figures | Loss, validation accuracy, and confusion matrix |
 
-Refresh the tracked GitHub summary after new experiments:
+Training uses a deterministic split of the official training data. The repository includes a [CPU smoke-test workflow](.github/workflows/smoke-test.yml); that workflow checks basic execution rather than reproducing the full experiments.
 
-```bash
-python3 scripts/summarize_runs.py
-```
+## Code and documentation
 
-## Reproducibility Checklist
+| Path | Purpose |
+| --- | --- |
+| `train.py` / `test.py` | Training and standalone evaluation |
+| `snn_minimal/models/conv_snn.py` | Convolutional SNN architectures |
+| `snn_minimal/data.py` / `engine.py` | Data preparation and training/evaluation loops |
+| `scripts/summarize_runs.py` | Historical run aggregation and figure collection |
+| [README.technical.md](README.technical.md) | Detailed technical documentation |
+| [report.md](report.md) | Chinese experiment report |
+| [REFERENCE_NOTES.md](REFERENCE_NOTES.md) | Upstream attribution and implementation boundaries |
 
-- `args.json` stores the exact CLI configuration for each run.
-- `metrics.json` stores final and best-validation checkpoints.
-- `test_metrics.json` is written only by `test.py`.
-- `train.log` records per-epoch metrics for later inspection.
-- `train_loss.svg`, `val_acc.svg`, and `confusion_matrix.svg` are generated automatically after training.
-- GitHub Actions runs a CPU smoke test to catch broken training/evaluation flows.
+Spiking neuron implementations, multi-step utilities, and reset helpers come from SpikingJelly. The repository implements the experiment pipeline, configuration handling, evaluation, and artifact packaging. `requirements.txt` references SpikingJelly commit `b049197b9589211418940c50031d3b7acb603bd6`.
 
-## Scope And Honesty
+## Limitations
 
-This is a **baseline research package**, not a claim of state-of-the-art performance. Its value is in:
+The recorded results do not establish energy savings, hardware acceleration, or superiority over a matched ANN. Static-image repetition also does not test event-stream temporal modeling. Useful extensions include multiple seeds, controlled neuron/timestep ablations, matched ANN comparisons, and measured spike statistics.
 
-- clear experiment boundaries
-- credible implementation hygiene
-- transparent attribution to upstream libraries
-- a foundation for future ablations and stronger studies
+## License
 
-## Next Research Directions
-
-The most natural extensions from here are:
-
-1. Compare `LIF` vs `IF`, and sweep `tau` and timestep count `T`.
-2. Add matched-parameter ANN baselines to measure what the SNN inductive bias is actually buying.
-3. Track sparsity or spike-rate statistics as a proxy for efficiency, not just accuracy.
-4. Move from static-image repetition to event-based or neuromorphic datasets for a stronger temporal justification.
-5. Add ablation tables and multiple random seeds to report mean and variance instead of single-run numbers.
-
-## Additional Notes
-
-- Detailed run summaries: [`results/experiment_summary.md`](results/experiment_summary.md)
-- Chinese stage report: [`report.md`](report.md)
-- Upstream attribution and design boundary: [`REFERENCE_NOTES.md`](REFERENCE_NOTES.md)
-- Chinese experiment note: [`SNN实验说明.pdf`](SNN实验说明.pdf)
-
-## Dependency
-
-This project uses [SpikingJelly](https://github.com/fangwei123456/spikingjelly) commit `b049197b9589211418940c50031d3b7acb603bd6` through `requirements.txt`.
+[MIT](LICENSE). Upstream dependencies retain their respective licenses.
