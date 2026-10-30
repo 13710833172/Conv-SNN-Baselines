@@ -1,4 +1,4 @@
-# Convolutional SNN Classification Baselines
+# Conv-SNN Baselines
 
 Multi-step convolutional spiking neural networks for **MNIST** and **CIFAR-10**, built with PyTorch and [SpikingJelly](https://github.com/fangwei123456/spikingjelly). This repository provides a compact baseline for static-image classification, with separate training, validation, and test entry points.
 
